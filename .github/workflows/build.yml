@@ -11,10 +11,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python 3.10
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
@@ -25,10 +25,20 @@ jobs:
 
     - name: Build executable
       run: |
-        pyinstaller --onefile --windowed --name "FaceFinder" --add-data "$env:VIRTUAL_ENV\Lib\site-packages\face_recognition_models;face_recognition_models" face_finder.py
+        # Get Python site-packages path
+        $site_packages = python -c "import site; print(site.getsitepackages()[0])"
+        
+        # Build with PyInstaller
+        pyinstaller `
+          --onefile `
+          --windowed `
+          --name "FaceFinder" `
+          --add-data "$site_packages\face_recognition_models;face_recognition_models" `
+          --add-data "$site_packages\cv2\opencv_videoio_ffmpeg*.dll;." `
+          face_finder.py
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: FaceFinder
         path: dist/
